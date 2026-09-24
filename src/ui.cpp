@@ -8,6 +8,7 @@
 #include "constants/constants.h"
 #include "menuUi.h"
 #include "helperUi.h"
+#include <U8g2lib.h>
 
 // 'Capture', 70x40px
 const unsigned char epd_bitmap_Capture[] PROGMEM = {
@@ -40,9 +41,10 @@ UI<T>::UI()
     : T(U8G2_R0, /* reset=*/U8X8_PIN_NONE)
 {
   tempText[0] = '\0';
-  deltaText[0] = '\0';
-  voltText[0] = '\0';
-  userTempText[0] = '\0';
+  // hysteresisText[0] = '\0';
+  resText[0] = '\0';
+  acpText[0] = '\0';
+  // userTempText[0] = '\0';
 
   menuUI = new MenuUI(this);
 }
@@ -54,65 +56,44 @@ MenuUI &UI<T>::getMenuUI()
 }
 
 template <typename T>
-void UI<T>::setFloatText(char *buf, size_t size, const char *label, float v)
+UI<T> &UI<T>::setTemperature(float temp)
 {
-  if (v < 0)
-    v = -v;
-  int whole = (int)v;
-  int frac = (int)(v * 100) % 100;
-
-  setText(buf, size, "%s: %d.%02d", label, whole, frac);
-}
-
-template <typename T>
-void UI<T>::setTemperature(float temp)
-{
-  this->temperature = temp;
-  this->setFloatText(tempText, sizeof(tempText), "T", temp);
-}
-
-template <typename T>
-float UI<T>::getTemperature()
-{
-  return temperature;
-}
-
-template <typename T>
-void UI<T>::setVolt(float volt)
-{
-  voltage = volt;
-  this->setFloatText(voltText, sizeof(voltText), "V", volt);
+  this->_temperature = temp;
+  return *this;
 }
 
 template <typename T>
 void UI<T>::main()
 {
-  setText(userTempText, sizeof(userTempText), "UT: %d",
-          Settings::getUserTemp());
-  setText(deltaText, sizeof(deltaText), "Delta: %d", Settings::getHysteresis());
+  // setText(userTempText, sizeof(userTempText), "UT: %d", Settings::getUserTemp());
+  // setText(hysteresisText, sizeof(hysteresisText), "Delta: %d", Settings::getHysteresis());
   this->drawStr(TEMP_X, TEMP_Y, tempText);
-  this->drawStr(VOLT_X, VOLT_Y, voltText);
-  this->drawStr(HYSTERESIS_X, HYSTERESIS_Y, deltaText);
-  this->drawStr(USERTEMP_X, USERTEMP_Y, userTempText);
-  snprintf(burnerText, sizeof(burnerText), "Burner: %s", Settings::getBurnerStatus() ? "ON" : "OFF");
-  // error overlay, not a replacement screen
-  if (Settings::getErrorStatus())
-  {
-    this->drawStr(BURNER_X, BURNER_Y, Error::getErrorMessage(errorCode));
-  }
-  else
-  {
-    this->drawStr(BURNER_X, BURNER_Y, burnerText);
-  }
+  this->setCursor(VOLT_X, VOLT_Y);
+  this->print(resText);
+  this->drawStr(BURNER_X, BURNER_Y, acpText);
+  // this->drawStr(VOLT_X, VOLT_Y, resText);
+  // this->drawStr(VOLT_X, VOLT_Y, voltText);
+  // this->drawStr(HYSTERESIS_X, HYSTERESIS_Y, hysteresisText);
+  // this->drawStr(USERTEMP_X, USERTEMP_Y, userTempText);
+  // snprintf(burnerText, sizeof(burnerText), "Burner: %s", Settings::getBurnerStatus() ? "ON" : "OFF");
+  // if (Settings::getErrorStatus())
+  // {
+  //   this->drawStr(BURNER_X, BURNER_Y, Error::getErrorMessage(errorCode));
+  // }
+  // else
+  // {
+  //   this->drawStr(BURNER_X, BURNER_Y, burnerText);
+  // }
 }
 
 template <typename T>
 void UI<T>::draw()
 {
+  initUI();
   this->firstPage();
   do
   {
-    this->setFont(FONT);
+    this->setFont(u8g2_font_ncenR08_tf);
     switch (Page::getCurrentPage())
     {
     case MAIN_PAGE:
@@ -128,36 +109,13 @@ void UI<T>::draw()
 }
 
 template <typename T>
-void UI<T>::setError(int code)
-{
-  errorCode = code;
-}
-
-template <typename T>
-void UI<T>::removeError()
-{
-  errorCode = 0;
-}
-
-template <typename T>
-void UI<T>::initDelta()
-{
-  setText(deltaText, sizeof(deltaText), "Delta: %d", Settings::getHysteresis());
-}
-
-template <typename T>
-void UI<T>::userTempInit()
-{
-  setText(userTempText, sizeof(userTempText), "UT: %d", Settings::getUserTemp());
-}
-
-template <typename T>
 void UI<T>::initUI()
 {
-  setTemperature(0);
-  // setVolt(0);
-  initDelta();
-  userTempInit();
+
+  setText(tempText, sizeof(tempText), "Temperature: %d", (int)_temperature);
+  // snprintf(resText, sizeof(resText), "Resistance: %.2f", static_cast<double>(_resistance));
+  setFloatText(resText, sizeof(resText), "Resistance", _resistance);
+  setText(acpText, sizeof(acpText), "ACP: %d", _acp);
 }
 
 template <typename T>
@@ -170,7 +128,21 @@ void UI<T>::startWindow()
     drawCentered("Factory IRBIS", 0, 25);
     this->drawXBMP(CENTER_X / 2, CENTER_Y / 2, 70, 40, epd_bitmap_Capture);
   } while (this->nextPage());
-  delay(4000);
+  delay(START_MENU_DURATION);
+}
+
+template <typename T>
+UI<T> &UI<T>::setACP(int acp)
+{
+  _acp = acp;
+  return *this;
+}
+
+template <typename T>
+UI<T> &UI<T>::setRes(float v)
+{
+  _resistance = v;
+  return *this;
 }
 
 template <typename T>

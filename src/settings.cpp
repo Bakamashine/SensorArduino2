@@ -5,11 +5,6 @@
 #include "constants/constants.h"
 #include "constants/settings.h"
 
-void Settings::setUserTemp(int t)
-{
-  userTemperature = t;
-}
-
 int Settings::userTemperature = DEFAULT_USER_TEMP;
 bool Settings::burnerStatus = false;
 bool Settings::settingsStatus = false;
@@ -35,11 +30,6 @@ void Settings::downUserTemp()
   userTemperature--;
 }
 
-bool Settings::getBurnerStatus()
-{
-  return burnerStatus;
-}
-
 void Settings::setBurnerStatus(bool st)
 {
   burnerStatus = st;
@@ -61,11 +51,6 @@ void Settings::setSettingsStatus(bool st)
 bool Settings::getSettingsStatus()
 {
   return settingsStatus;
-}
-
-void Settings::setErrorStatus(bool e)
-{
-  errorStatus = e;
 }
 
 bool Settings::getErrorStatus()

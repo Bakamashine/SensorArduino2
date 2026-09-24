@@ -3,7 +3,7 @@
 #include <U8g2lib.h>
 #include "menuUi.h"
 
-#define DEFAULT_SIZE 16
+#define DEFAULT_SIZE 24
 
 // compile-time check: T must be U8G2 or derived from it
 // thanks you, ai
@@ -32,21 +32,22 @@ public:
 };
 
 template <typename T>
-class UI : public T
+class UI : public T // U8G2
 {
   static_assert(isU8G2Derived<T, U8G2>::value,
                 "UI<T>: T must be a U8G2 display class");
 
 private:
-  float temperature;
-  float voltage;
-  int errorCode = 0;
+  float _temperature;
+  float _resistance;
+  int _errorCode = 0;
+  int _acp;
   char tempText[DEFAULT_SIZE];
-  char deltaText[DEFAULT_SIZE];
-  char voltText[DEFAULT_SIZE];
-  char userTempText[DEFAULT_SIZE];
-  char burnerText[DEFAULT_SIZE];
-  void setFloatText(char *, size_t, const char *, float);
+  // char hysteresisText[DEFAULT_SIZE];
+  char acpText[DEFAULT_SIZE];
+  char resText[DEFAULT_SIZE];
+  // char userTempText[DEFAULT_SIZE];
+  // char burnerText[DEFAULT_SIZE];
 
   // void setText(char*, size_t, const char*, ...);
   MenuUI *menuUI;
@@ -54,19 +55,15 @@ private:
 
 public:
   UI();
+  void initUI();
   ~UI()
   {
     delete menuUI;
   }
-  void initUI();
-  void setTemperature(float);
-  float getTemperature();
-  void setVolt(float);
+  UI &setTemperature(float);
   void draw();
-  void setError(int);
-  void removeError();
-  void initDelta();
-  void userTempInit();
+  UI &setACP(int);
+  UI &setRes(float);
   MenuUI &getMenuUI();
   void startWindow();
   int drawCentered(const char *, int padding_top = 0, int padding_bottom = 0, int padding_left = 0, int padding_right = 0);

@@ -4,7 +4,7 @@
 #include "temperature.h"
 #include "ui.h"
 #include "constants/constants.h"
-#include "OneButton.h"
+#include <OneButton.h>
 #include "validate.h"
 #include "constants/pin.h"
 #include "settings.h"
@@ -55,17 +55,22 @@ void loop()
   btn_minus.tick();
   int sensor_signal = analogRead(SENSOR_PIN);
   float temperature = temp.setRes(sensor_signal).getTemperature();
+  float res = temp.getRes();
 #ifdef DEBUG
   // Serial.println(temp.getVolt());
-  // Serial.println(temp.getRes());
+  Serial.print("Resistance: ");
+  Serial.println(res);
   // Serial.println(temperature);
   // debugUI.fprintValue("Volt", temp.getVolt());
   // debugUI.fprintValue("Resistance", temp.getRes());
+  debugUI.printValue("ACP", sensor_signal);
   debugUI.printValue("Temperature", temperature);
 #endif
-  ui.setTemperature(temperature);
-
-  ui.draw();
+  ui
+      .setTemperature(temperature)
+      .setACP(sensor_signal)
+      .setRes(res)
+      .draw();
 
   /// validate
   // int code = val.setTemperature().executePipelineValidate();

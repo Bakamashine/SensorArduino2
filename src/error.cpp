@@ -2,30 +2,9 @@
 
 Error::Error() {}
 
-void Error::setErrorCode(int code)
-{
-  this->code = code;
-}
-
 void Error::setErrorCodeAndStatus(int code)
 {
-  if (code > 0)
-    setStatusError();
   this->code = code;
-}
-int Error::getErrorCode()
-{
-  return code;
-}
-
-bool Error::getStatusError()
-{
-  return status;
-}
-
-void Error::setStatusError()
-{
-  status = true;
 }
 
 const char *Error::getErrorMessage(int code)

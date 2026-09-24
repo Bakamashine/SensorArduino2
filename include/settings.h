@@ -11,15 +11,12 @@ private:
   static int correctInt;
 
 public:
-  static void setUserTemp(int);
   static int getUserTemp();
   static void setSettingsStatus(bool);
   static bool getSettingsStatus();
-  static void setErrorStatus(bool);
   static bool getErrorStatus();
   static void upUserTemp();
   static void downUserTemp();
-  static bool getBurnerStatus();
   static void setBurnerStatus(bool);
   static void setHysteresis(int);
   static int getHysteresis();
