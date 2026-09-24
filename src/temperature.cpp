@@ -1,6 +1,8 @@
 #include <Arduino.h>
 #include "temperature.h"
 #include "helper.h"
+#include "avr/pgmspace.h"
+#include "settings.h"
 
 #define MIN_T -10
 #define MAX_T 110
@@ -11,7 +13,7 @@
 #define VCC 5
 #define RESISTOR_FROM_SENSOR 2000 // 2kOm
 
-static const NtcPoint ntcTable[] = {
+static const NtcPoint ntcTable[] PROGMEM = {
     // temperature | om
     {-34, 55400},
     {-33, 51760},
@@ -151,12 +153,21 @@ static const NtcPoint ntcTable[] = {
 };
 #define NTC_TABLE_SIZE (sizeof(ntcTable) / sizeof(ntcTable[0]))
 
-int Temperature::getTemperature()
+int16_t Temperature::ntcTempAt(size_t i)
+{
+  return static_cast<int16_t>(pgm_read_word(&ntcTable[i].temp_c));
+}
+int32_t Temperature::ntcResAt(size_t i)
+{
+  return static_cast<int32_t>(pgm_read_dword(&ntcTable[i].resistance));
+}
+
+int16_t Temperature::getTemperature()
 {
   int values[ATTEMPTS];
   for (int i = 0; i < ATTEMPTS; i++)
   {
-    values[i] = getTempFromTable();
+    values[i] = getTempFromTable() + Settings::getCorrectInt();
   }
   return getAvarageValue(values, ATTEMPTS);
 }
@@ -184,31 +195,34 @@ Temperature &Temperature::setRes(int val)
   voltage = (float)val * VCC / MAX_ACP;
   if (voltage >= VCC)
     voltage = VCC - 0.001F;
-  resistance = RESISTOR_FROM_SENSOR * voltage / (VCC-voltage); 
+  resistance = RESISTOR_FROM_SENSOR * voltage / (VCC - voltage);
   return *this;
 }
 
-int Temperature::getTempFromTable()
+int16_t Temperature::getTempFromTable()
 {
 
   // get max or min value
-  if (resistance >= ntcTable[0].resistance)
-    return ntcTable[0].temp_c;
-  if (resistance <= ntcTable[NTC_TABLE_SIZE - 1].resistance)
-    return ntcTable[NTC_TABLE_SIZE - 1].temp_c;
+  if (resistance >= ntcResAt(0))
+    return ntcTempAt(0);
+  if (resistance <= ntcResAt(NTC_TABLE_SIZE - 1))
+    return ntcTempAt(NTC_TABLE_SIZE - 1);
 
   for (size_t i = 0; i + 1 < NTC_TABLE_SIZE; i++)
   {
-    if (resistance > ntcTable[i].resistance)
+    int16_t _temp = ntcTempAt(i);
+    int32_t _res = ntcResAt(i);
+
+    if (resistance > _res)
       continue;
-    if (resistance < ntcTable[i + 1].resistance)
+    if (resistance < ntcResAt(i + 1))
       continue;
 
-      //  rounding returning number
-    float fraction = (float)(ntcTable[i].resistance - resistance) /
-                     (ntcTable[i].resistance - ntcTable[i + 1].resistance);
-    return ntcTable[i].temp_c +
-           (int)(fraction * (ntcTable[i + 1].temp_c - ntcTable[i].temp_c) + 0.5F);
+    //  rounding returning number
+    float fraction = (float)(_res - resistance) /
+                     (_res - ntcResAt(i + 1));
+    return _temp +
+           (int)(fraction * (ntcTempAt(i + 1) - _temp) + 0.5F);
   }
   return 0;
 }

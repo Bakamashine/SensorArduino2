@@ -1,0 +1,11 @@
+#pragma once
+
+#define DEBUG
+
+
+#define BOD 9600
+#define SENSOR_PIN A0
+#define OLED_CLASS U8G2_SSD1306_128X64_NONAME_1_HW_I2C
+
+
+#define SHOW_START_WINDOW

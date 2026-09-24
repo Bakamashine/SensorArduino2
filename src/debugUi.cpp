@@ -32,20 +32,20 @@ void DebugUI::printTitle(const char *v)
   Serial.print(t);
   LINE(total_size);
   Serial.print("\n");
-  delete t; 
+  free(t);
 }
 
 void DebugUI::printValue(const char *v1, const char *v2)
 {
   auto val = fmtAlloc("%s: %s", v1, v2);
   Serial.println(val);
-  delete val;
+  free(val);
 }
 void DebugUI::printValue(const char *v1, long v2)
 {
   auto val = fmtAlloc("%s: %d", v1, v2);
   Serial.println(val);
-  delete val;
+  free(val);
 }
 void DebugUI::fprintValue(const char *v1, float v2)
 {
@@ -53,7 +53,7 @@ void DebugUI::fprintValue(const char *v1, float v2)
   if (s != NULL)
   {
     printValue(v1, s);
-    delete s;
+    free(s);
   }
 }
 
@@ -65,7 +65,7 @@ void DebugUI::bytePrintValue(const char *v1, byte v2)
   {
     snprintf(tempString, t_size, "%s: 0x%02X", v1, (int)v2);
     Serial.print(tempString);
-    delete tempString;
+    free(tempString);
   }
 }
 
