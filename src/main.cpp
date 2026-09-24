@@ -54,7 +54,7 @@ void loop()
   btn_plus.tick();
   btn_minus.tick();
   int sensor_signal = analogRead(SENSOR_PIN);
-  float temperature = temp.setRes(sensor_signal).getTemperature();
+  float temperature = temp.getTemperature();
   float res = temp.getRes();
 #ifdef DEBUG
   // Serial.println(temp.getVolt());

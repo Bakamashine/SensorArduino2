@@ -3,6 +3,7 @@
 #include "helper.h"
 #include "avr/pgmspace.h"
 #include "settings.h"
+#include "constants/constants.h"
 
 #define MIN_T -10
 #define MAX_T 110
@@ -167,6 +168,7 @@ int16_t Temperature::getTemperature()
   int values[ATTEMPTS];
   for (int i = 0; i < ATTEMPTS; i++)
   {
+    setRes(analogRead(SENSOR_PIN));
     values[i] = getTempFromTable() + Settings::getCorrectInt();
   }
   return getAvarageValue(values, ATTEMPTS);
