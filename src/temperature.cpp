@@ -10,7 +10,7 @@
 
 #define ATTEMPTS 5
 
-#define PERMITTED_ABILITY_ARDUINO 1023
+#define MAX_ACP 1023
 #define VCC 5
 #define RESISTOR_FROM_SENSOR 2000 // 2kOm
 
@@ -205,7 +205,7 @@ Temperature &Temperature::setRes(int acp)
     _resist = 0;
     return *this;
   }
-  _resist = RESISTOR_FROM_SENSOR * (float)acp / (PERMITTED_ABILITY_ARDUINO - acp);
+  _resist = RESISTOR_FROM_SENSOR * (float)acp / (MAX_ACP - acp);
   return *this;
 }
 
