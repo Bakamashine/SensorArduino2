@@ -5,34 +5,34 @@
 #include "constants/constants.h"
 #include "constants/settings.h"
 
-int Settings::userTemperature = DEFAULT_USER_TEMP;
-bool Settings::burnerStatus = false;
-bool Settings::settingsStatus = false;
-bool Settings::errorStatus = false;
-int Settings::hysteresis = DEFAULT_HYSTERESIS;
-int Settings::correctInt = 0;
+int Settings::_userTemp = DEFAULT_USER_TEMP;
+bool Settings::_burnerStatus = false;
+bool Settings::_settingsStatus = false;
+bool Settings::_errorStatus = false;
+int Settings::_hysteresis = DEFAULT_HYSTERESIS;
+int Settings::_correctInt = 0;
 
 int Settings::getUserTemp()
 {
-  return userTemperature;
+  return _userTemp;
 }
 void Settings::upUserTemp()
 {
-  if (Temperature::getMaxT() <= userTemperature)
+  if (Temperature::getMaxT() <= _userTemp)
     return;
-  userTemperature++;
+  _userTemp++;
 }
 
 void Settings::downUserTemp()
 {
-  if (Temperature::getMinT() >= userTemperature)
+  if (Temperature::getMinT() >= _userTemp)
     return;
-  userTemperature--;
+  _userTemp--;
 }
 
 void Settings::setBurnerStatus(bool st)
 {
-  burnerStatus = st;
+  _burnerStatus = st;
 }
 
 void Settings::setSettingsStatus(bool st)
@@ -45,35 +45,35 @@ void Settings::setSettingsStatus(bool st)
   {
     Page::setCurrentPage(MAIN_PAGE);
   }
-  settingsStatus = st;
+  _settingsStatus = st;
 }
 
 bool Settings::getSettingsStatus()
 {
-  return settingsStatus;
+  return _settingsStatus;
 }
 
 bool Settings::getErrorStatus()
 {
-  return errorStatus;
+  return _errorStatus;
 }
 
 void Settings::setHysteresis(int v)
 {
-  hysteresis = v;
+  _hysteresis = v;
 }
 
 int Settings::getHysteresis()
 {
-  return hysteresis;
+  return _hysteresis;
 }
 
 int Settings::getCorrectInt()
 {
-  return correctInt;
+  return _correctInt;
 }
 
 void Settings::setCorrectInt(int v)
 {
-  correctInt = v;
+  _correctInt = v;
 }

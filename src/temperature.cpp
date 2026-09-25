@@ -10,7 +10,7 @@
 
 #define ATTEMPTS 5
 
-#define MAX_ACP 1023
+#define PERMITTED_ABILITY_ARDUINO 1023
 #define VCC 5
 #define RESISTOR_FROM_SENSOR 2000 // 2kOm
 
@@ -168,17 +168,17 @@ int16_t Temperature::getTemperature()
   int values[ATTEMPTS];
   for (int i = 0; i < ATTEMPTS; i++)
   {
-    setRes(analogRead(SENSOR_PIN));
+    // setRes(analogRead(SENSOR_PIN));
     values[i] = getTempFromTable() + Settings::getCorrectInt();
   }
   return getAvarageValue(values, ATTEMPTS);
 }
 
-Temperature &Temperature::setVolt(float voltage)
-{
-  this->voltage = voltage;
-  return *this;
-}
+// Temperature &Temperature::setVolt(float voltage)
+// {
+//   this->_volt = voltage;
+//   return *this;
+// }
 
 int Temperature::getMaxT()
 {
@@ -190,14 +190,22 @@ int Temperature::getMinT()
   return MIN_T;
 }
 
-float Temperature::getVolt() { return voltage; }
+// float Temperature::getVolt() { return _volt; }
 
-Temperature &Temperature::setRes(int val)
+Temperature &Temperature::setAcp(int acp)
 {
-  voltage = (float)val * VCC / MAX_ACP;
-  if (voltage >= VCC)
-    voltage = VCC - 0.001F;
-  resistance = RESISTOR_FROM_SENSOR * voltage / (VCC - voltage);
+  _acp = acp;
+  return *this;
+}
+
+Temperature &Temperature::setRes(int acp)
+{
+  if (acp == 0)
+  {
+    _resist = 0;
+    return *this;
+  }
+  _resist = RESISTOR_FROM_SENSOR * (float)acp / (PERMITTED_ABILITY_ARDUINO - acp);
   return *this;
 }
 
@@ -205,9 +213,9 @@ int16_t Temperature::getTempFromTable()
 {
 
   // get max or min value
-  if (resistance >= ntcResAt(0))
+  if (_resist >= ntcResAt(0))
     return ntcTempAt(0);
-  if (resistance <= ntcResAt(NTC_TABLE_SIZE - 1))
+  if (_resist <= ntcResAt(NTC_TABLE_SIZE - 1))
     return ntcTempAt(NTC_TABLE_SIZE - 1);
 
   for (size_t i = 0; i + 1 < NTC_TABLE_SIZE; i++)
@@ -215,13 +223,13 @@ int16_t Temperature::getTempFromTable()
     int16_t _temp = ntcTempAt(i);
     int32_t _res = ntcResAt(i);
 
-    if (resistance > _res)
+    if (_resist > _res)
       continue;
-    if (resistance < ntcResAt(i + 1))
+    if (_resist < ntcResAt(i + 1))
       continue;
 
     //  rounding returning number
-    float fraction = (float)(_res - resistance) /
+    float fraction = (float)(_res - _resist) /
                      (_res - ntcResAt(i + 1));
     return _temp +
            (int)(fraction * (ntcTempAt(i + 1) - _temp) + 0.5F);
@@ -229,4 +237,4 @@ int16_t Temperature::getTempFromTable()
   return 0;
 }
 
-float Temperature::getRes() { return resistance; }
+ld Temperature::getRes() { return _resist; }

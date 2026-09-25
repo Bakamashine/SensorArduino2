@@ -13,9 +13,9 @@ enum MenuItem
 class MenuUI
 {
 private:
-  U8G2 *display;
-  int selected;
-  bool valueOpen = false;
+  U8G2 *_display;
+  int _selected;
+  bool _isValueOpen = false;
 
 public:
   MenuUI(U8G2 *display);

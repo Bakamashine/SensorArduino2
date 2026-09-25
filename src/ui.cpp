@@ -36,34 +36,29 @@ const unsigned char epd_bitmap_Capture[] PROGMEM = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0x3b, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f, 0xff,
     0x7f, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x3f};
 
-template <typename T>
-UI<T>::UI()
-    : T(U8G2_R0, /* reset=*/U8X8_PIN_NONE)
+UI::UI()
+    : OLED_CLASS(U8G2_R0, /* reset=*/U8X8_PIN_NONE)
 {
   tempText[0] = '\0';
   // hysteresisText[0] = '\0';
   resText[0] = '\0';
   acpText[0] = '\0';
   // userTempText[0] = '\0';
-
   menuUI = new MenuUI(this);
 }
 
-template <typename T>
-MenuUI &UI<T>::getMenuUI()
+MenuUI &UI::getMenuUI()
 {
   return *menuUI;
 }
 
-template <typename T>
-UI<T> &UI<T>::setTemperature(float temp)
+UI &UI::setTemperature(float temp)
 {
   this->_temperature = temp;
   return *this;
 }
 
-template <typename T>
-void UI<T>::main()
+void UI::main()
 {
   // setText(userTempText, sizeof(userTempText), "UT: %d", Settings::getUserTemp());
   // setText(hysteresisText, sizeof(hysteresisText), "Delta: %d", Settings::getHysteresis());
@@ -86,8 +81,7 @@ void UI<T>::main()
   // }
 }
 
-template <typename T>
-void UI<T>::draw()
+void UI::draw()
 {
   initUI();
   this->firstPage();
@@ -108,8 +102,7 @@ void UI<T>::draw()
   } while (this->nextPage());
 }
 
-template <typename T>
-void UI<T>::initUI()
+void UI::initUI()
 {
 
   setText(tempText, sizeof(tempText), "Temperature: %d", (int)_temperature);
@@ -118,8 +111,7 @@ void UI<T>::initUI()
   setText(acpText, sizeof(acpText), "ACP: %d", _acp);
 }
 
-template <typename T>
-void UI<T>::startWindow()
+void UI::startWindow()
 {
   this->firstPage();
   do
@@ -131,27 +123,22 @@ void UI<T>::startWindow()
   delay(START_MENU_DURATION);
 }
 
-template <typename T>
-UI<T> &UI<T>::setACP(int acp)
+UI &UI::setAcp(int acp)
 {
   _acp = acp;
   return *this;
 }
 
-template <typename T>
-UI<T> &UI<T>::setRes(float v)
+UI &UI::setRes(float v)
 {
   _resistance = v;
   return *this;
 }
 
-template <typename T>
-int UI<T>::drawCentered(const char *text, int padding_top, int padding_bottom, int padding_left, int padding_right)
+int UI::drawCentered(const char *text, int padding_top, int padding_bottom, int padding_left, int padding_right)
 {
   int x = (OLED_WIDTH - this->getStrWidth(text)) / 2;
   int y = (OLED_HEIGHT + this->getFontAscent()) / 2;
   this->drawStr(x + padding_left - padding_right, y + padding_top - padding_bottom, text);
   return y;
 }
-
-template class UI<OLED_CLASS>;

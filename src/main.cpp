@@ -17,7 +17,7 @@ void toggleSetup();
 
 DebugUI debugUI;
 Temperature temp;
-UI<OLED_CLASS> ui;
+UI ui;
 MenuUI &menuUI = ui.getMenuUI();
 Validate val;
 
@@ -54,7 +54,9 @@ void loop()
   btn_plus.tick();
   btn_minus.tick();
   int sensor_signal = analogRead(SENSOR_PIN);
-  float temperature = temp.getTemperature();
+  float temperature = temp
+                          .setRes(sensor_signal)
+                          .getTemperature();
   float res = temp.getRes();
 #ifdef DEBUG
   // Serial.println(temp.getVolt());
@@ -68,7 +70,7 @@ void loop()
 #endif
   ui
       .setTemperature(temperature)
-      .setACP(sensor_signal)
+      .setAcp(sensor_signal)
       .setRes(res)
       .draw();
 
@@ -87,7 +89,7 @@ void loop()
   //   }
   // }
 
-  Settings::setSettingsStatus(digitalRead(TOGGLE_PIN) == HIGH);
+  // Settings::setSettingsStatus(digitalRead(TOGGLE_PIN) == HIGH);
 }
 
 void sensorSetup()

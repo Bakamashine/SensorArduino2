@@ -8,30 +8,30 @@
 static const char *const names[MENU_ITEMS_COUNT] = {"Change hysteresis", "Change temperature", "Ch. value for cor. sensor"};
 
 MenuUI::MenuUI(U8G2 *_display)
-    : display(_display), selected(CHANGE_HYSTERESIS)
+    : _display(_display), _selected(CHANGE_HYSTERESIS)
 {
 }
 
 void MenuUI::goToUp()
 {
-  selected = (selected - 1 + MENU_ITEMS_COUNT) % MENU_ITEMS_COUNT;
+  _selected = (_selected - 1 + MENU_ITEMS_COUNT) % MENU_ITEMS_COUNT;
 }
 
 void MenuUI::goToDown()
 {
-  selected = (selected + 1) % MENU_ITEMS_COUNT;
+  _selected = (_selected + 1) % MENU_ITEMS_COUNT;
 }
 
 void MenuUI::draw()
 {
-  display->setFont(FONT);
+  _display->setFont(FONT);
 
-  if (valueOpen)
+  if (_isValueOpen)
   {
     char buf[32];
     const char *label;
     int value;
-    switch (selected)
+    switch (_selected)
     {
     case CHANGE_HYSTERESIS:
       label = "Hysteresis:";
@@ -47,37 +47,37 @@ void MenuUI::draw()
       break;
     }
     snprintf(buf, sizeof(buf), "%s %d", label, value);
-    display->drawStr(TEMP_X, TEMP_Y, buf);
+    _display->drawStr(TEMP_X, TEMP_Y, buf);
     return;
   }
 
   int y = 15;
   for (int i = 0; i < MENU_ITEMS_COUNT; i++)
   {
-    display->drawStr(0, y, i == selected ? ">" : " ");
-    display->drawStr(8, y, names[i]);
+    _display->drawStr(0, y, i == _selected ? ">" : " ");
+    _display->drawStr(8, y, names[i]);
     y += 12;
   }
 }
 
 void MenuUI::openValue()
 {
-  valueOpen = true;
+  _isValueOpen = true;
 }
 
 void MenuUI::closeValue()
 {
-  valueOpen = false;
+  _isValueOpen = false;
 }
 
 bool MenuUI::isValueOpen()
 {
-  return valueOpen;
+  return _isValueOpen;
 }
 
 void MenuUI::increaseValue()
 {
-  switch (selected)
+  switch (_selected)
   {
   case CHANGE_HYSTERESIS:
   {
@@ -99,7 +99,7 @@ void MenuUI::increaseValue()
 
 void MenuUI::decreaseValue()
 {
-  switch (selected)
+  switch (_selected)
   {
   case CHANGE_HYSTERESIS:
   {

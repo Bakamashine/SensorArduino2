@@ -4,7 +4,7 @@ Error::Error() {}
 
 void Error::setErrorCodeAndStatus(int code)
 {
-  this->code = code;
+  this->_code = code;
 }
 
 const char *Error::getErrorMessage(int code)

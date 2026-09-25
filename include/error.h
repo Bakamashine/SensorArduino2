@@ -3,7 +3,7 @@
 class Error
 {
 private:
-  int code = 0;
+  int _code = 0;
 
 public:
   Error();

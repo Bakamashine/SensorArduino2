@@ -13,8 +13,13 @@ void setFloatText(char *buf, size_t size, const char *label, float v)
 {
   if (v < 0)
     v = -v;
-  int whole = (int)v;
-  int frac = (int)(v * 100) % 100;
+  long whole = (long)v;
+  long frac = (long)((v - (float)whole) * 100.0F + 0.5F);
+  if (frac >= 100)
+  {
+    frac -= 100;
+    whole += 1;
+  }
 
-  setText(buf, size, "%s: %d.%02d", label, whole, frac);
+  setText(buf, size, "%s: %ld.%02ld", label, whole, frac);
 }

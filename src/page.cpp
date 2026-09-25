@@ -1,13 +1,13 @@
 #include "page.h"
 
-int Page::currentPage = MAIN_PAGE;
+int Page::_currentPage = MAIN_PAGE;
 
 int Page::getCurrentPage()
 {
-  return currentPage;
+  return _currentPage;
 }
 
 void Page::setCurrentPage(int page)
 {
-  currentPage = page;
+  _currentPage = page;
 }

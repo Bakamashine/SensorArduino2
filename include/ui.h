@@ -2,41 +2,12 @@
 #include <stdint.h>
 #include <U8g2lib.h>
 #include "menuUi.h"
+#include "constants/constants.h"
 
 #define DEFAULT_SIZE 24
 
-// compile-time check: T must be U8G2 or derived from it
-// thanks you, ai
-template <typename D, typename B>
-struct isU8G2Derived
+class UI : public OLED_CLASS
 {
-private:
-  struct No
-  {
-  };
-  struct Yes
-  {
-    No no[2];
-  };
-  static Yes test(B *)
-  {
-    return Yes();
-  }
-  static No test(...)
-  {
-    return No();
-  }
-
-public:
-  static const bool value = sizeof(test(static_cast<D *>(0))) == sizeof(Yes);
-};
-
-template <typename T>
-class UI : public T // U8G2
-{
-  static_assert(isU8G2Derived<T, U8G2>::value,
-                "UI<T>: T must be a U8G2 display class");
-
 private:
   float _temperature;
   float _resistance;
@@ -58,11 +29,11 @@ public:
   void initUI();
   ~UI()
   {
-    delete menuUI;
+    free(menuUI);
   }
   UI &setTemperature(float);
   void draw();
-  UI &setACP(int);
+  UI &setAcp(int);
   UI &setRes(float);
   MenuUI &getMenuUI();
   void startWindow();

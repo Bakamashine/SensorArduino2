@@ -3,12 +3,12 @@
 class Settings
 {
 private:
-  static int userTemperature;
-  static bool burnerStatus;
-  static bool settingsStatus;
-  static bool errorStatus;
-  static int hysteresis; // burner hysteresis deadband
-  static int correctInt;
+  static int _userTemp;
+  static bool _burnerStatus;
+  static bool _settingsStatus;
+  static bool _errorStatus;
+  static int _hysteresis; // burner hysteresis deadband
+  static int _correctInt;
 
 public:
   static int getUserTemp();
