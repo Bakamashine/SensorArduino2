@@ -53,9 +53,9 @@ void loop()
 {
   btn_plus.tick();
   btn_minus.tick();
-  int sensor_signal = analogRead(SENSOR_PIN);
+  // int sensor_signal = analogRead(SENSOR_PIN);
   float temperature = temp
-                          .setRes(sensor_signal)
+                          // .setRes(sensor_signal)
                           .getTemperature();
   float res = temp.getRes();
 #ifdef DEBUG
@@ -65,12 +65,12 @@ void loop()
   // Serial.println(temperature);
   // debugUI.fprintValue("Volt", temp.getVolt());
   // debugUI.fprintValue("Resistance", temp.getRes());
-  debugUI.printValue("ACP", sensor_signal);
+  debugUI.printValue("ACP", temp.getAcp());
   debugUI.printValue("Temperature", temperature);
 #endif
   ui
       .setTemperature(temperature)
-      .setAcp(sensor_signal)
+      .setAcp(temp.getAcp())
       .setRes(res)
       .draw();
 

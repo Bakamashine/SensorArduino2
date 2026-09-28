@@ -34,7 +34,7 @@ char *DebugUI::fmtAlloc(const char *fmt, ...)
   va_end(args);
   if (needed < 0)
     return NULL;
-  char *buf = (char *)malloc(needed + 1);
+  char *buf = static_cast<char *>(malloc(needed + 1));
   if (buf != NULL)
   {
     va_start(args, fmt);

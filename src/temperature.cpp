@@ -14,6 +14,8 @@
 #define VCC 5
 #define RESISTOR_FROM_SENSOR 2000 // 2kOm
 
+#define FILTER_ALPHA 0.15F // EMA coefficient (0..1], smaller = smoother
+
 static const NtcPoint ntcTable[] PROGMEM = {
     // temperature | om
     {-34, 55400},
@@ -163,22 +165,22 @@ int32_t Temperature::ntcResAt(size_t i)
   return static_cast<int32_t>(pgm_read_dword(&ntcTable[i].resistance));
 }
 
+int Temperature::getAcp() {return _acp;}
+
 int16_t Temperature::getTemperature()
 {
-  int values[ATTEMPTS];
+  int sum = 0;
   for (int i = 0; i < ATTEMPTS; i++)
   {
-    // setRes(analogRead(SENSOR_PIN));
-    values[i] = getTempFromTable() + Settings::getCorrectInt();
+    int raw = analogRead(SENSOR_PIN);
+    if (_adcFilter < 0.0F)
+      _adcFilter = static_cast<float>(raw);
+    else
+      _adcFilter = FILTER_ALPHA * raw + (1.0F - FILTER_ALPHA) * _adcFilter;
+    sum += getTempFromTable(static_cast<int>(_adcFilter + 0.5F));
   }
-  return getAvarageValue(values, ATTEMPTS);
+  return sum / ATTEMPTS;
 }
-
-// Temperature &Temperature::setVolt(float voltage)
-// {
-//   this->_volt = voltage;
-//   return *this;
-// }
 
 int Temperature::getMaxT()
 {
@@ -190,7 +192,6 @@ int Temperature::getMinT()
   return MIN_T;
 }
 
-// float Temperature::getVolt() { return _volt; }
 
 Temperature &Temperature::setAcp(int acp)
 {
@@ -205,12 +206,19 @@ Temperature &Temperature::setRes(int acp)
     _resist = 0;
     return *this;
   }
-  _resist = RESISTOR_FROM_SENSOR * (float)acp / (MAX_ACP - acp);
+  _resist = RESISTOR_FROM_SENSOR *  static_cast<float>(acp) / (MAX_ACP - acp);
   return *this;
 }
 
-int16_t Temperature::getTempFromTable()
+int16_t Temperature::getTempFromTable(int rawAcp)
 {
+  _acp = rawAcp;
+  if (rawAcp >= MAX_ACP)
+    rawAcp = MAX_ACP - 1;
+  if (rawAcp <= 0)
+    rawAcp = 1;
+
+  _resist = RESISTOR_FROM_SENSOR * (static_cast<float>(rawAcp) / (MAX_ACP - rawAcp));
 
   // get max or min value
   if (_resist >= ntcResAt(0))
@@ -220,19 +228,19 @@ int16_t Temperature::getTempFromTable()
 
   for (size_t i = 0; i + 1 < NTC_TABLE_SIZE; i++)
   {
-    int16_t _temp = ntcTempAt(i);
-    int32_t _res = ntcResAt(i);
+    int16_t temp = ntcTempAt(i);
+    int32_t res = ntcResAt(i);
 
-    if (_resist > _res)
+    if (_resist > res)
       continue;
     if (_resist < ntcResAt(i + 1))
       continue;
 
-    //  rounding returning number
-    float fraction = (float)(_res - _resist) /
-                     (_res - ntcResAt(i + 1));
-    return _temp +
-           (int)(fraction * (ntcTempAt(i + 1) - _temp) + 0.5F);
+    //  returning the round number
+    float fraction = static_cast<float>(res - _resist) /
+                     (res - ntcResAt(i + 1));
+    return temp +
+           static_cast<int>(fraction * (ntcTempAt(i + 1) - temp) + 0.5F);
   }
   return 0;
 }

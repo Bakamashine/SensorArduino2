@@ -13,8 +13,8 @@ void setFloatText(char *buf, size_t size, const char *label, float v)
 {
   if (v < 0)
     v = -v;
-  long whole = (long)v;
-  long frac = (long)((v - (float)whole) * 100.0F + 0.5F);
+  long whole = static_cast<long>(v);
+  long frac = static_cast<long>((v - static_cast<float>(whole)) * 100.0F + 0.5F);
   if (frac >= 100)
   {
     frac -= 100;

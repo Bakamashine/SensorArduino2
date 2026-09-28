@@ -12,7 +12,8 @@ private:
   // float _volt = 0.0F;
   ld _resist;
   int _acp;
-  int16_t getTempFromTable();
+  float _adcFilter = -1.0F;
+  int16_t getTempFromTable(int rawAcp = 0);
 
 public:
   int16_t getTemperature();
@@ -21,6 +22,7 @@ public:
   static int getMinT();
   Temperature &setRes(int);
   Temperature &setAcp(int);
+  int getAcp();
   ld getRes();
   static inline int16_t ntcTempAt(size_t i);
   static inline int32_t ntcResAt(size_t i);

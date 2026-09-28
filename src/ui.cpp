@@ -105,7 +105,7 @@ void UI::draw()
 void UI::initUI()
 {
 
-  setText(tempText, sizeof(tempText), "Temperature: %d", (int)_temperature);
+  setText(tempText, sizeof(tempText), "Temperature: %d", static_cast<int>(_temperature));
   // snprintf(resText, sizeof(resText), "Resistance: %.2f", static_cast<double>(_resistance));
   setFloatText(resText, sizeof(resText), "Resistance", _resistance);
   setText(acpText, sizeof(acpText), "ACP: %d", _acp);

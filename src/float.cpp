@@ -10,7 +10,7 @@ char *Float::fmtAlloc(const char *fmt, ...)
   va_end(args);
   if (needed < 0)
     return NULL;
-  char *buf = (char *)malloc(needed + 1);
+  char *buf = static_cast<char *>(malloc(needed + 1));
   if (buf != NULL)
   {
     va_start(args, fmt);
@@ -24,7 +24,7 @@ char *Float::getFloat(float v1)
 {
   if (v1 < 0)
     v1 = -v1;
-  int whole = (int)v1;
-  int frac = (int)(v1 * 100) % 100;
+  int whole = static_cast<int>(v1);
+  int frac = static_cast<int>(v1 * 100) % 100;
   return fmtAlloc("%d.%02d", whole, frac);
 }
