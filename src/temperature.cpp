@@ -15,6 +15,7 @@
 #define RESISTOR_FROM_SENSOR 2000 // 2kOm
 
 #define FILTER_ALPHA 0.15F // EMA coefficient (0..1], smaller = smoother
+#define GET_RES(value) (RESISTOR_FROM_SENSOR * static_cast<float>(value) / (MAX_ACP - value))
 
 static const NtcPoint ntcTable[] PROGMEM = {
     // temperature | om
@@ -155,6 +156,7 @@ static const NtcPoint ntcTable[] PROGMEM = {
     {100, 174},
 };
 #define NTC_TABLE_SIZE (sizeof(ntcTable) / sizeof(ntcTable[0]))
+#define MIN_TEMP_BORDER -10
 
 int16_t Temperature::ntcTempAt(size_t i)
 {
@@ -165,7 +167,7 @@ int32_t Temperature::ntcResAt(size_t i)
   return static_cast<int32_t>(pgm_read_dword(&ntcTable[i].resistance));
 }
 
-int Temperature::getAcp() {return _acp;}
+int Temperature::getAcp() { return _acp; }
 
 int16_t Temperature::getTemperature()
 {
@@ -176,10 +178,15 @@ int16_t Temperature::getTemperature()
     if (_adcFilter < 0.0F)
       _adcFilter = static_cast<float>(raw);
     else
+      // filter * newAdc + (smooth - filter) * oldAdc
+      // https://ru.wikipedia.org/wiki/%D0%A1%D0%BA%D0%BE%D0%BB%D1%8C%D0%B7%D1%8F%D1%89%D0%B0%D1%8F_%D1%81%D1%80%D0%B5%D0%B4%D0%BD%D1%8F%D1%8F Moving avarage
       _adcFilter = FILTER_ALPHA * raw + (1.0F - FILTER_ALPHA) * _adcFilter;
     sum += getTempFromTable(static_cast<int>(_adcFilter + 0.5F));
   }
-  return sum / ATTEMPTS;
+  // auto temp = sum / ATTEMPTS;
+  // if (temp <= MIN_TEMP_BORDER)
+  // {
+  // }
 }
 
 int Temperature::getMaxT()
@@ -191,7 +198,6 @@ int Temperature::getMinT()
 {
   return MIN_T;
 }
-
 
 Temperature &Temperature::setAcp(int acp)
 {
@@ -206,7 +212,7 @@ Temperature &Temperature::setRes(int acp)
     _resist = 0;
     return *this;
   }
-  _resist = RESISTOR_FROM_SENSOR *  static_cast<float>(acp) / (MAX_ACP - acp);
+  _resist = GET_RES(acp);
   return *this;
 }
 
@@ -218,7 +224,7 @@ int16_t Temperature::getTempFromTable(int rawAcp)
   if (rawAcp <= 0)
     rawAcp = 1;
 
-  _resist = RESISTOR_FROM_SENSOR * (static_cast<float>(rawAcp) / (MAX_ACP - rawAcp));
+  _resist = GET_RES(rawAcp);
 
   // get max or min value
   if (_resist >= ntcResAt(0))
