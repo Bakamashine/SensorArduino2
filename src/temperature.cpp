@@ -4,6 +4,7 @@
 #include "avr/pgmspace.h"
 #include "settings.h"
 #include "constants/constants.h"
+#include "constants/ntcPoint.h"
 
 #define MIN_T -10
 #define MAX_T 110
@@ -16,146 +17,9 @@
 
 #define FILTER_ALPHA 0.15F // EMA coefficient (0..1], smaller = smoother
 #define GET_RES(value) (RESISTOR_FROM_SENSOR * static_cast<float>(value) / (MAX_ACP - value))
+#define TEMP_DELAY 2 * 1000
 
-static const NtcPoint ntcTable[] PROGMEM = {
-    // temperature | om
-    {-34, 55400},
-    {-33, 51760},
-    {-32, 48100},
-    {-31, 46700},
-    {-30, 45300},
-    {-29, 41200},
-    {-28, 39300},
-    {-27, 38200},
-    {-26, 34800},
-    {-25, 33600},
-    {-24, 31300},
-    {-23, 29700},
-    {-22, 28200},
-    {-21, 26400},
-    {-20, 24900},
-    {-19, 23900},
-    {-18, 22800},
-    {-17, 21400},
-    {-16, 20600},
-    {-15, 18760},
-    {-14, 17910},
-    {-13, 17080},
-    {-12, 16700},
-    {-11, 15705},
-    {-10, 14710},
-    {-9, 13900},
-    {-8, 13310},
-    {-7, 12780},
-    {-6, 12300},
-    {-5, 11590},
-    {-4, 11060},
-    {-3, 10280},
-    {-2, 10000},
-    {-1, 9360},
-    {0, 9100},
-    {1, 8655},
-    {2, 8210},
-    {3, 7740},
-    {4, 7400},
-    {5, 7000},
-    {6, 6750},
-    {7, 6500},
-    {8, 6180},
-    {9, 5830},
-    {10, 5630},
-    {11, 5260},
-    {12, 4970},
-    {13, 4735},
-    {14, 4500},
-    {15, 4340},
-    {16, 4170},
-    {17, 3980},
-    {18, 3780},
-    {19, 3680},
-    {20, 3450},
-    {21, 3270},
-    {22, 3140},
-    {23, 3010},
-    {24, 2890},
-    {25, 2760},
-    {26, 2640},
-    {27, 2530},
-    {28, 2410},
-    {29, 2300},
-    {30, 2190},
-    {31, 2100},
-    {32, 2010},
-    {33, 1949},
-    {34, 1870},
-    {35, 1790},
-    {36, 1718},
-    {37, 1642},
-    {38, 1580},
-    {39, 1519},
-    {40, 1451},
-    {41, 1396},
-    {42, 1343},
-    {43, 1291},
-    {44, 1243},
-    {45, 1195},
-    {46, 1147},
-    {47, 1103},
-    {48, 1063},
-    {49, 1022},
-    {50, 982},
-    {51, 942},
-    {52, 902},
-    {53, 870},
-    {54, 839},
-    {55, 808},
-    {56, 775},
-    {57, 746},
-    {58, 720},
-    {59, 696},
-    {60, 673},
-    {61, 649},
-    {62, 624},
-    {63, 601},
-    {64, 579},
-    {65, 557},
-    {66, 537},
-    {67, 518},
-    {68, 500},
-    {69, 482},
-    {70, 464},
-    {71, 448},
-    {72, 433},
-    {73, 419},
-    {74, 406},
-    {75, 394},
-    {76, 382},
-    {77, 369},
-    {78, 357},
-    {79, 345},
-    {80, 333},
-    {81, 322},
-    {82, 311},
-    {83, 300},
-    {84, 290},
-    {85, 281},
-    {86, 272},
-    {87, 263},
-    {88, 255},
-    {89, 246},
-    {90, 238},
-    {91, 230},
-    {92, 222},
-    {93, 215},
-    {94, 208},
-    {95, 201},
-    {96, 195},
-    {97, 189},
-    {98, 183},
-    {99, 178},
-    {100, 174},
-};
-#define NTC_TABLE_SIZE (sizeof(ntcTable) / sizeof(ntcTable[0]))
+
 #define MIN_TEMP_BORDER -10
 
 int16_t Temperature::ntcTempAt(size_t i)
@@ -169,24 +33,60 @@ int32_t Temperature::ntcResAt(size_t i)
 
 int Temperature::getAcp() { return _acp; }
 
+void Temperature::sort(int16_t *array, size_t size)
+{
+  size_t a, b;
+  int16_t t = 0;
+  for (a = 1; a < size; a++)
+  {
+    for (b = size - 1; b >= a; b--)
+    {
+      if (array[b] < array[b - 1])
+      {
+        t = array[b - 1];
+        array[b - 1] = array[b];
+        array[b] = t;
+      }
+    }
+  }
+}
+
+int16_t *Temperature::removeMinMax(int16_t *array, size_t size)
+{
+  sort(array, size);
+  int16_t *newArr = static_cast<int16_t *>(malloc(sizeof(int16_t) * (size - 2)));
+  for (size_t i = 1; i < size - 1; i++)
+  {
+    newArr[i - 1] = array[i];
+  }
+  return newArr;
+}
+
 int16_t Temperature::getTemperature()
 {
-  int sum = 0;
+
+  int16_t attempts[ATTEMPTS];
+
   for (int i = 0; i < ATTEMPTS; i++)
   {
-    int raw = analogRead(SENSOR_PIN);
+    int rawAdc = analogRead(SENSOR_PIN);
+    if (i > 1)
+      delay(TEMP_DELAY);
+
     if (_adcFilter < 0.0F)
-      _adcFilter = static_cast<float>(raw);
+      _adcFilter = static_cast<float>(rawAdc);
     else
       // filter * newAdc + (smooth - filter) * oldAdc
       // https://ru.wikipedia.org/wiki/%D0%A1%D0%BA%D0%BE%D0%BB%D1%8C%D0%B7%D1%8F%D1%89%D0%B0%D1%8F_%D1%81%D1%80%D0%B5%D0%B4%D0%BD%D1%8F%D1%8F Moving avarage
-      _adcFilter = FILTER_ALPHA * raw + (1.0F - FILTER_ALPHA) * _adcFilter;
-    sum += getTempFromTable(static_cast<int>(_adcFilter + 0.5F));
+      _adcFilter = FILTER_ALPHA * rawAdc + (1.0F - FILTER_ALPHA) * _adcFilter;
+
+    attempts[i] = getTempFromTable(static_cast<int>(_adcFilter + 0.5F)) + Settings::getCorrectInt();
   }
-  // auto temp = sum / ATTEMPTS;
-  // if (temp <= MIN_TEMP_BORDER)
-  // {
-  // }
+
+  int16_t *newArr = removeMinMax(attempts, ATTEMPTS);
+  int avarageValue = getAvarageValue(newArr, ATTEMPTS - 2);
+  free(newArr);
+  return avarageValue;
 }
 
 int Temperature::getMaxT()

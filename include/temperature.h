@@ -1,23 +1,20 @@
 #pragma once
 #include <Arduino.h>
 typedef long double ld;
-typedef struct
-{
-  int16_t temp_c;
-  uint32_t resistance;
-} NtcPoint;
+
 class Temperature
 {
 private:
   // float _volt = 0.0F;
-  ld _resist;
-  int _acp;
+  ld _resist = 0;
+  int _acp = 0;
   float _adcFilter = -1.0F;
   int16_t getTempFromTable(int rawAcp = 0);
+  void sort(int16_t *array, size_t size);
+  int16_t* removeMinMax(int16_t *array, size_t size);
 
 public:
   int16_t getTemperature();
-  Temperature &setVolt(float);
   static int getMaxT();
   static int getMinT();
   Temperature &setRes(int);
