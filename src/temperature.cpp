@@ -17,7 +17,7 @@
 
 #define FILTER_ALPHA 0.15F // EMA coefficient (0..1], smaller = smoother
 #define GET_RES(value) (RESISTOR_FROM_SENSOR * static_cast<float>(value) / (MAX_ACP - value))
-#define TEMP_DELAY 2 * 1000
+#define TEMP_INTERVAL (2 * 1000) // ms between samples
 
 
 #define MIN_TEMP_BORDER -10
@@ -64,29 +64,31 @@ int16_t *Temperature::removeMinMax(int16_t *array, size_t size)
 
 int16_t Temperature::getTemperature()
 {
+  uint32_t now = millis();
+  if (now - _lastSampleMs < TEMP_INTERVAL)
+    return _lastTemp;
 
-  int16_t attempts[ATTEMPTS];
+  _lastSampleMs = now;
 
-  for (int i = 0; i < ATTEMPTS; i++)
+  int rawAdc = analogRead(SENSOR_PIN);
+  if (_adcFilter < 0.0F)
+    _adcFilter = static_cast<float>(rawAdc);
+  else
+    // EMA: alpha * new + (1 - alpha) * old
+    _adcFilter = FILTER_ALPHA * rawAdc + (1.0F - FILTER_ALPHA) * _adcFilter;
+
+  _samples[_sampleIdx] = getTempFromTable(static_cast<int>(_adcFilter + 0.5F)) + Settings::getCorrectInt();
+  _sampleIdx++;
+
+  if (_sampleIdx >= ATTEMPTS)
   {
-    int rawAdc = analogRead(SENSOR_PIN);
-    if (i > 1)
-      delay(TEMP_DELAY);
-
-    if (_adcFilter < 0.0F)
-      _adcFilter = static_cast<float>(rawAdc);
-    else
-      // filter * newAdc + (smooth - filter) * oldAdc
-      // https://ru.wikipedia.org/wiki/%D0%A1%D0%BA%D0%BE%D0%BB%D1%8C%D0%B7%D1%8F%D1%89%D0%B0%D1%8F_%D1%81%D1%80%D0%B5%D0%B4%D0%BD%D1%8F%D1%8F Moving avarage
-      _adcFilter = FILTER_ALPHA * rawAdc + (1.0F - FILTER_ALPHA) * _adcFilter;
-
-    attempts[i] = getTempFromTable(static_cast<int>(_adcFilter + 0.5F)) + Settings::getCorrectInt();
+    int16_t *newArr = removeMinMax(_samples, ATTEMPTS);
+    _lastTemp = getAvarageValue(newArr, ATTEMPTS - 2);
+    free(newArr);
+    _sampleIdx = 0;
   }
 
-  int16_t *newArr = removeMinMax(attempts, ATTEMPTS);
-  int avarageValue = getAvarageValue(newArr, ATTEMPTS - 2);
-  free(newArr);
-  return avarageValue;
+  return _lastTemp;
 }
 
 int Temperature::getMaxT()

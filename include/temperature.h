@@ -2,6 +2,8 @@
 #include <Arduino.h>
 typedef long double ld;
 
+#define ATTEMPTS 5
+
 class Temperature
 {
 private:
@@ -9,6 +11,10 @@ private:
   ld _resist = 0;
   int _acp = 0;
   float _adcFilter = -1.0F;
+  uint32_t _lastSampleMs = 0;
+  int _sampleIdx = 0;
+  int16_t _lastTemp = 0;
+  int16_t _samples[ATTEMPTS];
   int16_t getTempFromTable(int rawAcp = 0);
   void sort(int16_t *array, size_t size);
   int16_t* removeMinMax(int16_t *array, size_t size);
