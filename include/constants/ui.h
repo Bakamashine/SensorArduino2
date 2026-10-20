@@ -1,8 +1,7 @@
 #pragma once
 
-
 #define FONT u8g2_font_squeezed_b7_tr
-#define START_FONT  u8g2_font_squeezed_b7_tr
+#define START_FONT u8g2_font_squeezed_b7_tr
 #define OLED_WIDTH 128
 #define OLED_HEIGHT 64
 

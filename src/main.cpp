@@ -1,15 +1,18 @@
 #include <Arduino.h>
+
 #include "constants/constants.h"
 #include "debugUi.h"
 #include "temperature.h"
 #include "ui.h"
-#include "constants/constants.h"
 // #include <OneButton.h>
-#include "validate.h"
 #include "constants/pin.h"
 #include "settings.h"
+#include "validate.h"
 
-#define IF_SETTINGS_OPEN_RETURN ({  if (!Settings::getSettingsStatus()) return ; })
+#define IF_SETTINGS_OPEN_RETURN                 \
+  ({                                            \
+    if (!Settings::getSettingsStatus()) return; \
+  })
 typedef unsigned long ul;
 void sensorSetup();
 // void buttonSetup();
@@ -37,8 +40,7 @@ float res = 0.0F;
 
 void ledProgramStatus(bool);
 
-void setup()
-{
+void setup() {
   Serial.begin(BOD);
 
   ui.begin();
@@ -52,8 +54,7 @@ void setup()
   // buttonSetup();
 }
 
-void loop()
-{
+void loop() {
   // btn_plus.tick();
   // btn_minus.tick();
   temperature = temp.getTemperature();
@@ -68,11 +69,7 @@ void loop()
   debugUI.printValue("ACP", temp.getAcp());
   debugUI.printValue("Temperature", temperature);
 #endif
-  ui
-      .setTemperature(temperature)
-      .setAcp(temp.getAcp())
-      .setRes(res)
-      .draw();
+  ui.setTemperature(temperature).setAcp(temp.getAcp()).setRes(res).draw();
 
   /// validate
   // int code = val.setTemperature().executePipelineValidate();
@@ -82,7 +79,8 @@ void loop()
   /// burner
   // if (!systemHalted)
   // {
-  //   if (temp.getTemperature() <= Settings::getUserTemp() - Settings::getHysteresis())
+  //   if (temp.getTemperature() <= Settings::getUserTemp() -
+  //   Settings::getHysteresis())
   //   {
   //     Settings::setBurnerStatus(true);
 
@@ -92,10 +90,7 @@ void loop()
   // Settings::setSettingsStatus(digitalRead(TOGGLE_PIN) == HIGH);
 }
 
-void sensorSetup()
-{
-  pinMode(SENSOR_PIN, INPUT);
-}
+void sensorSetup() { pinMode(SENSOR_PIN, INPUT); }
 
 // void buttonSetup()
 // {
@@ -156,7 +151,8 @@ void sensorSetup()
 // {
 //   digitalWrite(BURNER_PIN, LOW);
 //   Settings::setBurnerStatus(false);
-//   Settings::setSettingsStatus(false); // show the error overlay instead of the menu
+//   Settings::setSettingsStatus(false); // show the error overlay instead of
+//   the menu
 // }
 
 // void toggleSetup()

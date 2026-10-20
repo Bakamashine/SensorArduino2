@@ -1,14 +1,14 @@
 #pragma once
-#include <stdint.h>
 #include <U8g2lib.h>
-#include "menuUi.h"
+#include <stdint.h>
+
 #include "constants/constants.h"
+#include "menuUi.h"
 
 #define DEFAULT_SIZE 24
 
-class UI : public OLED_CLASS
-{
-private:
+class UI : public OLED_CLASS {
+ private:
   float _temperature;
   float _resistance;
   int _errorCode = 0;
@@ -24,18 +24,16 @@ private:
   MenuUI *menuUI;
   void main();
 
-public:
+ public:
   UI();
   void initUI();
-  ~UI()
-  {
-    free(menuUI);
-  }
+  ~UI() { free(menuUI); }
   UI &setTemperature(float);
   void draw();
   UI &setAcp(int);
   UI &setRes(float);
   MenuUI &getMenuUI();
   void startWindow();
-  int drawCentered(const char *, int padding_top = 0, int padding_bottom = 0, int padding_left = 0, int padding_right = 0);
+  int drawCentered(const char *, int padding_top = 0, int padding_bottom = 0,
+                   int padding_left = 0, int padding_right = 0);
 };

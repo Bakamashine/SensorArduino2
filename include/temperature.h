@@ -4,9 +4,8 @@ typedef long double ld;
 
 #define ATTEMPTS 5
 
-class Temperature
-{
-private:
+class Temperature {
+ private:
   // float _volt = 0.0F;
   ld _resist = 0;
   int _acp = 0;
@@ -17,9 +16,9 @@ private:
   int16_t _samples[ATTEMPTS];
   int16_t getTempFromTable(int rawAcp = 0);
   void sort(int16_t *array, size_t size);
-  int16_t* removeMinMax(int16_t *array, size_t size);
+  int16_t *removeMinMax(int16_t *array, size_t size);
 
-public:
+ public:
   int16_t getTemperature();
   static int getMaxT();
   static int getMinT();
